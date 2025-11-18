@@ -1,0 +1,48 @@
+<?php
+
+$servername = $_POST["localhost"];
+$username = $_POST["root"]; 
+$password = $_POST[""];     
+$dbname = $_POST["login_database"]; 
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    $username = $conn->real_escape_string($_POST['username']);
+    $email = $conn->real_escape_string($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    
+    if ($password === $confirm_password) {
+        
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        
+        $stmt = $conn->prepare("INSERT INTO login (username, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $email, $hashed_password); 
+
+        
+        if ($stmt->execute()) {
+            echo "Registration successful!";
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+
+        
+        $stmt->close();
+    } else {
+        echo "Passwords do not match.";
+    }
+}
+
+// Close the connection
+$conn->close();
+?>
